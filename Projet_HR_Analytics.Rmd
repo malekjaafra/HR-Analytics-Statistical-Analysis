@@ -1,0 +1,813 @@
+---
+title: "Analyse Statistique HR Analytics"
+author: "Malek Jaafra - May Zarriat"
+subtitle: "Licence 2 Big Data et Analyse de Données"
+date: "Mai 2026"
+output: pdf_document
+---
+
+# Introduction
+
+Ce projet consiste à réaliser une analyse statistique uni-variée, bi-variée et multi-variée du dataset HR Analytics Employee Attrition & Performance.
+
+L'objectif est d'étudier les facteurs influençant l'attrition des employés dans une entreprise.
+
+## Source des données
+
+Dataset : **HR Analytics Employee Attrition & Performance**  
+Plateforme : Kaggle  
+Lien : [https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
+
+---
+
+
+# Importation des bibliothèques
+
+```{r}
+library(ggplot2)
+library(FactoMineR)
+library(factoextra)
+library(corrplot)
+library(MASS)
+```
+# Importation du dataset
+
+```{r}
+data <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv",
+                 header = TRUE,
+                 stringsAsFactors = TRUE)
+```
+# Exploration du dataset
+
+```{r}
+dim(data)
+names(data)
+str(data)
+summary(data)
+```
+# Interprétation
+
+Le dataset contient 1470 employés et 35 variables décrivant différentes caractéristiques des employés telles que l’âge, le salaire, le département, le niveau d’éducation et l’attrition.
+
+La variable cible principale est "Attrition", qui indique si l’employé a quitté l’entreprise ou non.
+
+La majorité des employés appartiennent au département Research & Development.
+
+L’âge moyen des employés est d’environ 37 ans.
+
+La majorité des employés ne quittent pas l’entreprise, ce qui montre un faible taux d’attrition.
+
+# Présentation du dataset
+
+Le dataset utilisé dans cette étude est le dataset HR Analytics Employee Attrition & Performance.
+
+Il contient des informations relatives aux employés d’une entreprise telles que :
+- l’âge,
+- le revenu mensuel,
+- le département,
+- le poste occupé,
+- l’ancienneté,
+- ainsi que la variable d’attrition.
+
+L’objectif principal est d’analyser les facteurs pouvant influencer le départ des employés.
+
+# Description des variables
+
+Le dataset contient 1470 observations et 35 variables.
+
+Parmi les principales variables étudiées :
+
+- Age : âge de l’employé
+- MonthlyIncome : revenu mensuel
+- Department : département de travail
+- JobRole : poste occupé
+- Gender : genre de l’employé
+- YearsAtCompany : ancienneté dans l’entreprise
+- TotalWorkingYears : nombre total d’années d’expérience
+- Attrition : indique si l’employé a quitté l’entreprise ou non
+
+# Nettoyage et préparation des données
+```{r}
+sum(is.na(data))
+
+data <- na.omit(data)
+
+str(data)
+```
+# Interprétation
+
+Le nettoyage des données montre que le dataset ne contient aucune valeur manquante.
+
+La fonction `str(data)` indique que le dataset contient 1470 observations et 35 variables.
+
+Les variables qualitatives sont de type facteur (`Factor`) et les variables quantitatives sont de type numérique (`int`).
+
+Les données sont correctement structurées et prêtes pour l’analyse statistique.
+
+---
+
+# CHAPITRE 1 — Analyse univariée
+
+Ce chapitre présente une analyse descriptive des principales variables du dataset.  
+
+L’objectif est de comprendre la distribution des caractéristiques des employés telles que l’âge, le revenu mensuel, le genre, le département et l’attrition.
+
+
+## Distribution de l'âge des employés
+
+Cette partie permet d’étudier la distribution de l’âge des employés au sein de l’entreprise.
+
+```{r}
+summary(data$Age)
+
+hist(
+  data$Age,
+  col = "skyblue",
+  border = "white",
+  main = "Distribution de l'âge des employés",
+  xlab = "Age",
+  ylab = "Nombre d'employés"
+)
+```
+
+### Interprétation
+
+L'âge des employés varie entre 18 et 60 ans, avec une moyenne de 36.92 ans et une médiane de 36 ans.
+
+L'écart interquartile est de 13 ans (Q1 = 30 ans, Q3 = 43 ans), ce qui indique une population active relativement homogène et concentrée entre 30 et 43 ans.
+
+L'histogramme montre une distribution légèrement asymétrique à droite, avec une diminution progressive du nombre d'employés aux âges les plus élevés.
+
+Cette tranche d'âge dominante correspond à des employés expérimentés et en milieu de carrière.
+
+## Distribution du revenu mensuel
+Cette partie permet d’étudier la répartition du revenu mensuel des employés dans l’entreprise.
+
+```{r}
+summary(data$MonthlyIncome)
+
+hist(
+  data$MonthlyIncome,
+  col = "steelblue",
+  border = "white",
+  main = "Distribution du revenu mensuel",
+  xlab = "Revenu mensuel",
+  ylab = "Nombre d'employés"
+)
+```
+
+### Interprétation
+
+Le revenu mensuel des employés varie fortement, entre 1009 et 19999.
+
+La médiane (4919) est nettement inférieure à la moyenne (6503), ce qui confirme une asymétrie à droite due à la présence de hauts salaires minoritaires.
+
+Plus de 75% des employés perçoivent un revenu inférieur à 8379, ce qui indique que la majorité des effectifs occupent des postes à rémunération faible ou moyenne.
+
+Les valeurs élevées correspondent probablement à des employés occupant des postes hiérarchiques supérieurs tels que Manager ou Director.
+
+## Répartition des employés selon le genre
+Cette partie permet d’analyser la répartition des employés selon leur genre.
+
+```{r}
+table(data$Gender)
+
+barplot(
+  table(data$Gender),
+  col = c("pink", "lightblue"),
+  main = "Répartition par genre",
+  ylab = "Nombre d'employés"
+)
+```
+
+### Interprétation
+
+Le dataset contient 882 hommes (60%) et 588 femmes (40%).
+
+La population étudiée est donc majoritairement masculine, avec un écart de 20 points de pourcentage entre les deux genres.
+
+Ce déséquilibre devra être pris en compte lors de l'interprétation des analyses liées au genre et à l'attrition.
+
+## Répartition de l'attrition
+Cette partie permet d’étudier la proportion des employés qui quittent l’entreprise.
+
+```{r}
+table(data$Attrition)
+
+barplot(
+  table(data$Attrition),
+  col = c("forestgreen", "firebrick"),
+  main = "Répartition de l'attrition",
+  ylab = "Nombre d'employés"
+)
+```
+
+### Interprétation
+
+Sur les 1470 employés du dataset, 1233 sont restés dans l'entreprise (No) et 237 ont quitté leur poste (Yes).
+
+Cela correspond à un taux d'attrition de 16.1%, ce qui représente une minorité significative méritant une analyse approfondie.
+
+Ce déséquilibre entre les deux classes devra être pris en compte lors de la modélisation prédictive, notamment par des techniques de rééchantillonnage ou de pondération.
+
+## Répartition des employés par département
+Cette partie permet d’étudier la répartition des employés selon les différents départements de l’entreprise.
+
+```{r}
+table(data$Department)
+
+barplot(
+  table(data$Department),
+  col = c("steelblue", "salmon", "lightgreen"),
+  main = "Répartition des employés par département",
+  ylab = "Nombre d'employés",
+  xlab = "Département",
+  las = 1,
+  cex.names = 0.8
+)
+```
+
+### Interprétation
+
+Les employés sont inégalement répartis entre les trois départements de l'entreprise.
+
+Le département Research & Development concentre la grande majorité des effectifs avec 961 employés, soit 65.4% du total.
+
+Le département Sales regroupe 446 employés (30.3%), tandis que le département Human Resources est le plus petit avec seulement 63 employés (4.3%).
+
+Cette répartition déséquilibrée devra être prise en compte lors des analyses par département.
+
+---
+
+# CHAPITRE 2 — Analyse bivariée quantitative
+
+Cette partie a pour objectif d’étudier les relations entre plusieurs variables quantitatives du dataset.
+
+## Relation entre l'âge et le revenu mensuel
+Cette analyse permet d’étudier la relation entre l’âge des employés et leur revenu mensuel.
+
+```{r}
+plot(
+  data$Age,
+  data$MonthlyIncome,
+  col = "steelblue",
+  pch = 16,
+  main = "Relation entre l'âge et le revenu mensuel",
+  xlab = "Age",
+  ylab = "Revenu mensuel"
+)
+
+cor(data$Age, data$MonthlyIncome)
+```
+
+### Interprétation
+
+Le graphique montre une relation positive entre l'âge et le revenu mensuel des employés.
+
+Le coefficient de corrélation de Pearson est r = 0.498, ce qui indique une corrélation positive modérée et statistiquement significative.
+
+En général, les employés les plus âgés tendent à percevoir un revenu plus élevé, probablement en raison de leur expérience professionnelle et de leur ancienneté accumulée.
+
+Cependant, la dispersion importante des points autour de la tendance générale indique que l'âge seul ne détermine pas le niveau de revenu, d'autres facteurs comme le poste ou le niveau hiérarchique jouant également un rôle important.
+
+## Matrice de corrélation des variables quantitatives
+Cette partie permet d’étudier les corrélations entre plusieurs variables quantitatives du dataset.
+
+
+```{r}
+vars_quanti <- data[, c(
+  "Age",
+  "MonthlyIncome",
+  "YearsAtCompany",
+  "TotalWorkingYears",
+  "DistanceFromHome"
+)]
+
+cor(vars_quanti)
+```
+### Interprétation
+La matrice de corrélation révèle des relations positives significatives entre plusieurs variables.
+
+La corrélation la plus forte est observée entre TotalWorkingYears et MonthlyIncome (r = 0.77), suivie de Age et TotalWorkingYears (r = 0.68), ce qui est logique puisque les employés plus âgés accumulent naturellement plus d'expérience et perçoivent des revenus plus élevés.
+
+YearsAtCompany est modérément corrélée au revenu mensuel (r = 0.51) et à l'expérience totale (r = 0.63).
+
+En revanche, DistanceFromHome présente des corrélations quasi nulles avec toutes les autres variables (< 0.02 en valeur absolue), confirmant son indépendance totale vis-à-vis des caractéristiques professionnelles étudiées.
+
+## Visualisation de la matrice de corrélation
+Cette visualisation permet de représenter graphiquement les corrélations entre les variables quantitatives.
+
+
+```{r}
+library(corrplot)
+
+mat_cor <- cor(vars_quanti)
+
+corrplot(
+  mat_cor,
+  method = "circle",
+  type = "upper",
+  tl.col = "black",
+  tl.cex = 0.8
+)
+```
+### Interprétation
+
+Le graphique confirme visuellement ces résultats. Les cercles bleus foncés et de grande taille illustrent les corrélations les plus fortes entre TotalWorkingYears, MonthlyIncome et Age, formant un bloc cohérent de variables positivement liées.
+
+DistanceFromHome se distingue nettement par des cercles quasi invisibles, traduisant son absence de lien avec les autres variables.
+
+## Régression linéaire entre le revenu mensuel et l'ancienneté
+Cette analyse vise à étudier la relation entre le revenu mensuel des employés et leur ancienneté dans l’entreprise à l’aide d’une régression linéaire simple.
+
+
+```{r}
+modele <- lm(YearsAtCompany ~ MonthlyIncome, data = data)
+
+summary(modele)
+```
+### Interprétation
+Le modèle de régression linéaire explique l'ancienneté (YearsAtCompany) par le revenu mensuel (MonthlyIncome).
+
+Le coefficient associé à MonthlyIncome est positif (6.693e-04) et hautement significatif (p-value < 2e-16), confirmant qu'un revenu plus élevé est associé à une ancienneté plus importante.
+
+Cependant, le R² = 0.264 indique que seulement 26.4% de la variation de l'ancienneté est expliquée par le revenu seul. Les 73.6% restants dépendent d'autres facteurs non inclus dans ce modèle.
+
+## Visualisation de la régression linéaire
+Cette figure représente graphiquement la relation entre le revenu mensuel et l’ancienneté des employés.
+
+```{r}
+plot(
+  data$MonthlyIncome,
+  data$YearsAtCompany,
+  col = "steelblue",
+  pch = 16,
+  xlab = "Revenu mensuel",
+  ylab = "Ancienneté dans l'entreprise",
+  main = "Régression linéaire : ancienneté ~ revenu"
+)
+
+abline(modele, col = "red", lwd = 2)
+```
+### Interprétation
+
+La droite de régression croissante confirme la relation positive entre le revenu mensuel et l'ancienneté dans l'entreprise.
+
+Cependant, la forte dispersion des points autour de la droite illustre les limites du modèle : le revenu mensuel ne suffit pas à lui seul à expliquer l'ancienneté des employés, ce que confirme le R² = 0.264.
+
+## Intervalle de confiance du revenu mensuel
+
+Cette partie permet d’estimer l’intervalle dans lequel se situe la moyenne réelle du revenu mensuel des employés avec un niveau de confiance de 95 %.
+
+```{r}
+t.test(data$MonthlyIncome)
+```
+
+
+### Interprétation
+
+Le test t appliqué à la variable MonthlyIncome permet d'estimer l'intervalle de confiance à 95% de la moyenne salariale de l'entreprise.
+
+Avec un niveau de confiance de 95%, la moyenne du revenu mensuel est comprise entre 6262 et 6744, avec une moyenne estimée de 6503.
+
+La faible largeur de cet intervalle (482 unités, soit ±3.7% de la moyenne) est principalement due à la grande taille de l'échantillon (n = 1470), qui réduit l'erreur standard de la moyenne, et non à une faible variabilité des salaires.
+
+Cette estimation fournit néanmoins une référence fiable pour caractériser le niveau salarial global de l'entreprise.
+
+## Estimation locale de densité : Âge et revenu mensuel
+
+Cette partie permet de visualiser les zones où les employés sont les plus concentrés selon leur âge et leur revenu mensuel.
+
+```{r}
+library(MASS)
+
+tmp <- data[, c("Age", "MonthlyIncome")]
+tmp <- tmp[complete.cases(tmp), ]
+
+filled.contour(
+  kde2d(tmp$Age, tmp$MonthlyIncome),
+  color.palette = terrain.colors,
+  xlab = "Âge",
+  ylab = "Revenu mensuel",
+  main = "Estimation locale de densité : Age × Revenu"
+)
+```
+
+### Interprétation
+
+Le graphique de densité bidimensionnelle met en évidence les zones de concentration des employés selon leur âge et leur revenu mensuel.
+
+La densité maximale est observée chez les employés âgés entre 25 et 40 ans avec un revenu compris entre 2000 et 5000, correspondant aux profils les plus représentés dans l'entreprise, probablement des postes d'entrée ou de milieu de gamme.
+
+Les zones de faible densité correspondent aux employés avec des revenus très élevés ou des âges avancés, qui sont minoritaires dans l'entreprise.
+
+Cette représentation confirme l'existence d'une relation positive modérée entre l'âge et le revenu mensuel, tout en montrant que les hauts revenus restent rares à tous les âges.
+
+---
+
+# CHAPITRE 3 — Analyse bivariée qualitative
+
+Cette partie a pour objectif d’étudier les relations entre deux variables qualitatives du dataset afin d’identifier d’éventuelles dépendances entre celles-ci.
+
+## Attrition vs Département  
+Cette analyse permet d’étudier s’il existe une relation entre le département de l’employé et sa décision de quitter l’entreprise.
+
+```{r}
+table(data$Attrition, data$Department)
+chisq.test(data$Attrition, data$Department)
+```
+### Interprétation
+
+Le tableau de contingence révèle des taux d'attrition différents selon les départements.
+
+Le département Sales présente le taux d'attrition le plus élevé avec 92 départs sur 446 employés, soit 20.6%.
+
+Le département Human Resources affiche un taux d'attrition de 19% (12 départs sur 63 employés), tandis que Research & Development présente le taux le plus faible avec 13.8% (133 départs sur 961 employés).
+
+Le test du Khi-deux de Pearson donne une p-value de 0.0045, largement inférieure au seuil de 0.05.
+
+On rejette donc l'hypothèse d'indépendance entre les deux variables : il existe une relation statistiquement significative entre le département et l'attrition. Le département d'appartenance influence donc la probabilité de quitter l'entreprise.
+
+## Attrition vs Genre
+Cette analyse vise à vérifier si le genre influence la décision de quitter l’entreprise.
+
+```{r}
+table(data$Attrition, data$Gender)
+chisq.test(data$Attrition, data$Gender)
+```
+### Interprétation
+
+Le tableau de contingence montre des taux d'attrition proches entre les deux genres : 14.8% chez les femmes (87 départs sur 588) et 17% chez les hommes (150 départs sur 882).
+
+Le test du Khi-deux de Pearson avec correction de Yates donne une p-value de 0.2906, supérieure au seuil de 0.05.
+
+On ne rejette donc pas l'hypothèse d'indépendance entre les deux variables : il n'existe pas de relation statistiquement significative entre le genre et l'attrition dans cet échantillon.
+
+## Attrition vs Business Travel
+Cette analyse permet d’étudier si les déplacements professionnels influencent la décision de quitter l’entreprise.
+
+```{r}
+table(data$Attrition, data$BusinessTravel)
+chisq.test(data$Attrition, data$BusinessTravel)
+```
+### Interprétation
+
+Le tableau de contingence révèle des différences marquées selon la fréquence des déplacements professionnels.
+
+Les employés voyageant fréquemment (Travel_Frequently) présentent le taux d'attrition le plus élevé avec 69 départs sur 277 employés, soit 24.9%.
+
+Les employés voyageant rarement affichent un taux intermédiaire de 15% (156/1043), tandis que les employés sans déplacement (Non-Travel) présentent le taux le plus faible avec seulement 8% (12/150).
+
+Le test du Khi-deux donne une p-value de 5.609e-06, très largement inférieure au seuil de 0.05.
+
+On rejette donc l'hypothèse d'indépendance : la fréquence des déplacements professionnels est significativement associée à l'attrition. Plus un employé voyage fréquemment, plus son risque de quitter l'entreprise est élevé.
+
+## Test de Fisher
+Ce test est utilisé lorsque les effectifs sont faibles.
+
+```{r}
+fisher.test(data$Attrition, data$Gender)
+```
+### Interprétation
+
+Le test exact de Fisher a été appliqué en complément du test du Khi-deux pour analyser la relation entre le genre et l'attrition.
+
+La p-value obtenue est de 0.2778, supérieure au seuil de 0.05.
+On ne rejette donc pas l'hypothèse d'indépendance entre les deux variables, ce qui confirme les résultats du test du Khi-deux.
+
+De plus, l'odds ratio estimé est de 1.18, avec un intervalle de confiance à 95% de [0.878 ; 1.593] qui contient la valeur 1, confirmant l'absence d'effet significatif du genre sur la probabilité de quitter l'entreprise.
+
+## Analyse des correspondances (AFC)
+Cette méthode permet de visualiser les relations entre les modalités des variables qualitatives.
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+data_clean <- na.omit(data[, c("Attrition", "JobRole")])
+t_afc <- table(data_clean$Attrition, data_clean$JobRole)
+t_afc
+resultat_afc <- CA(t_afc, graph = TRUE)
+```
+### Interprétation 
+
+L'Analyse des Correspondances (AFC) permet de visualiser les associations entre les modalités de l'attrition et les différents postes occupés par les employés.
+Les résultats montrent des disparités importantes selon le poste occupé.
+
+Le Sales Representative présente le taux d'attrition le plus élevé avec 33 départs sur 83 employés, soit 39.8%, suivi du Laboratory Technician avec 62 départs sur 259 employés, soit 23.9%.
+
+À l'inverse, les postes de Manager (5/102 = 4.9%), Manufacturing Director (10/145 = 6.9%) et Research Director (2/80 = 2.5%) présentent des taux d'attrition très faibles, indiquant une forte stabilité de ces profils au sein de l'entreprise.
+
+Cette analyse met en évidence que le type de poste occupé est fortement associé au risque de départ, ce qui peut aider l'entreprise à mieux cibler ses politiques de rétention vers les postes les plus exposés.
+
+---
+
+# CHAPITRE 4 — Analyse bivariée mixte (quant + quali)
+
+Cette partie a pour objectif d’étudier les relations entre les variables quantitatives et qualitatives du dataset.
+
+## Relation entre MonthlyIncome et Department
+
+```{r}
+boxplot(
+  MonthlyIncome ~ Department,
+  data = data,
+  col = c("steelblue", "salmon", "forestgreen"),
+  main = "Revenu mensuel par département",
+  xlab = "Département",
+  ylab = "Revenu mensuel ($)"
+)
+```
+
+### Interprétation
+
+Le graphique boxplot montre des distributions salariales différentes selon les départements.
+
+Le département Research & Development présente les revenus mensuels médians les plus élevés, suivi du département Sales, tandis que Human Resources affiche les revenus les plus faibles.
+
+Des valeurs extrêmes (outliers) sont observées dans les trois départements, correspondant à des employés occupant des postes à très hautes responsabilités.
+
+Le test ANOVA confirme cette différence avec une p-value de 0.041, inférieure au seuil de 0.05. Cependant, cette p-value est à peine significative, ce qui indique que l'effet du département sur le revenu mensuel, bien que réel, reste modeste.
+
+## Relation entre Age et Attrition
+
+```{r}
+boxplot(
+  Age ~ Attrition,
+  data = data,
+  col = c("forestgreen", "firebrick"),
+  main = "Âge selon l'attrition",
+  xlab = "Attrition",
+  ylab = "Âge"
+)
+```
+
+### Interprétation
+
+Le graphique boxplot révèle une différence d'âge notable entre les employés ayant quitté l'entreprise et ceux qui y sont restés.
+
+La médiane d'âge des employés sans attrition (No) est d'environ 37 ans, contre environ 33 ans pour les employés ayant quitté l'entreprise (Yes), soit une différence de 4 ans.
+
+Les employés qui quittent l'entreprise sont donc globalement plus jeunes, ce qui suggère que les profils juniors sont plus susceptibles de partir, possiblement en raison de meilleures opportunités externes ou d'une moindre ancienneté.
+
+## ANOVA : MonthlyIncome ~ Department
+
+```{r}
+anova_dept <- aov(MonthlyIncome ~ Department, data = data)
+
+summary(anova_dept)
+```
+
+### Interprétation
+
+Le test ANOVA compare les revenus mensuels moyens entre les trois départements.
+
+La p-value obtenue (0.041) est inférieure au seuil de 0.05, on rejette donc l'hypothèse d'égalité des moyennes : le revenu mensuel varie significativement selon le département.
+
+Cependant, cette p-value est à peine significative et la statistique F = 3.202 reste modeste, ce qui indique que l'effet du département sur le revenu, bien que réel, demeure faible. D'autres facteurs comme le poste occupé ou le niveau hiérarchique expliquent davantage les différences salariales observées.
+
+## ANOVA : Age ~ Attrition
+
+```{r}
+anova_attr <- aov(Age ~ Attrition, data = data)
+
+summary(anova_attr)
+```
+
+### Interprétation
+
+Le test ANOVA confirme de manière très significative la différence d'âge moyen entre les deux groupes d'attrition.
+
+La statistique F = 38.18 et la p-value de 8.36e-10 sont extrêmement significatives, bien en dessous du seuil de 0.001.
+
+On rejette donc l'hypothèse d'égalité des moyennes d'âge entre les deux groupes : l'âge influence significativement l'attrition des employés.
+
+Ce résultat est l'un des plus robustes de l'étude et confirme que les jeunes employés quittent plus fréquemment l'entreprise que leurs collègues plus expérimentés.
+
+--- 
+
+# CHAPITRE 5 — Analyse multivariée
+
+# Analyse en composantes principales (ACP)
+
+Cette partie permet de réduire la dimension des variables quantitatives et d’identifier les principales relations entre elles.
+
+## Importation des bibliothèques
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+```
+
+## Sélection des variables quantitatives
+
+```{r}
+vars_quanti <- data[, c(
+  "Age",
+  "MonthlyIncome",
+  "YearsAtCompany",
+  "TotalWorkingYears",
+  "DistanceFromHome"
+)]
+```
+
+## Réalisation de l’ACP
+
+```{r}
+resultat_pca <- PCA(vars_quanti,
+                    scale.unit = TRUE,
+                    graph = TRUE)
+```
+### Interprétation générale
+
+L’ACP permet de réduire la dimension des données quantitatives et d’identifier les principales relations entre les variables étudiées.
+
+Les graphiques obtenus représentent les individus et les variables selon les principales composantes de l’analyse.
+
+## Valeurs propres
+
+```{r}
+eig.val <- get_eigenvalue(resultat_pca)
+
+eig.val
+```
+
+### Interprétation des valeurs propres
+
+La première composante principale explique environ 54.6 % de la variance totale des données.
+
+La deuxième composante explique environ 20 % de la variance.
+Ainsi, les deux premières composantes expliquent ensemble près de 74.6 % de l’information totale.
+
+Cela montre que les deux premières dimensions résument efficacement les variables quantitatives étudiées et conservent une grande partie de l’information du dataset.
+
+Les autres composantes expliquent une part plus faible de la variance, ce qui indique qu’elles apportent moins d’information supplémentaire.
+
+
+## Visualisation des valeurs propres
+
+```{r}
+fviz_eig(resultat_pca,
+         addlabels = TRUE,
+         ylim = c(0, 60))
+```
+
+### Interprétation
+
+Le scree plot montre une forte diminution après les deux premières composantes principales.
+
+Cela indique que les deux premières dimensions sont les plus importantes pour représenter les données.
+
+Les autres composantes apportent moins d’information supplémentaire.
+
+## Graphique des individus
+
+```{r}
+fviz_pca_ind(resultat_pca,
+             repel = TRUE)
+```
+
+### Interprétation du graphique des individus
+
+Le graphique représente les 1470 employés dans le plan formé par les deux premières composantes principales (Dim1 = 54.6%, Dim2 = 20%).
+
+Les employés situés à droite sur Dim1 correspondent aux profils les plus seniors : âge élevé, revenu important et longue expérience professionnelle. À l'inverse, les employés situés à gauche sont plus jeunes avec moins d'expérience et des revenus plus faibles.
+
+La majorité des individus est concentrée au centre du graphique, traduisant des profils relativement homogènes. Quelques individus s'éloignent fortement du centre et constituent des profils atypiques méritant une attention particulière.
+
+## Graphique des variables
+
+```{r}
+fviz_pca_var(resultat_pca,
+             col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+### Interprétation du graphique des variables
+
+Age, MonthlyIncome, TotalWorkingYears et YearsAtCompany sont orientées dans la même direction sur Dim1, avec des flèches longues confirmant leur forte contribution et leurs corrélations positives entre elles. Dim1 représente ainsi un axe de séniorité et d'expérience.
+
+DistanceFromHome est orientée vers le haut sur Dim2, perpendiculairement aux autres variables, traduisant son indépendance totale vis-à-vis des autres caractéristiques. Dim2 capte principalement la mobilité géographique.
+
+---
+
+# CHAPITRE 6 — Analyse factorielle des données mixtes (FAMD)
+
+Ce chapitre présente une analyse factorielle des données mixtes (FAMD) permettant d’étudier simultanément les variables quantitatives et qualitatives du dataset.
+
+L’objectif est d’identifier les principales relations entre les caractéristiques des employés et l’attrition.
+
+## Sélection des variables
+
+```{r}
+vars_famd <- data[, c(
+  "Age",
+  "MonthlyIncome",
+  "YearsAtCompany",
+  "Department",
+  "Gender",
+  "Attrition",
+  "BusinessTravel"
+)]
+```
+
+## Réalisation de la FAMD
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+resultat_famd <- FAMD(vars_famd,
+                      graph = TRUE)
+```
+
+### Interprétation générale
+
+La FAMD permet d’analyser simultanément les variables quantitatives et qualitatives du dataset.
+
+Cette méthode permet de visualiser les relations entre les employés, les variables et les différentes catégories étudiées.
+
+## Valeurs propres
+
+```{r}
+eig_famd <- get_eigenvalue(resultat_famd)
+eig_famd
+```
+
+### Interprétation des valeurs propres
+
+La première dimension explique 21.9% de la variance et la deuxième 12.5%, soit seulement 34.4% cumulés pour les deux premières dimensions.
+
+Contrairement à l'ACP, les dimensions 2 à 5 ont des contributions très proches (entre 11.1% et 12.5%), ce qui indique qu'aucune dimension ne domine clairement. Il faudrait conserver 5 dimensions pour atteindre 68.4% de variance expliquée, ce qui reflète la complexité des données mixtes.
+
+## Visualisation des valeurs propres
+
+```{r}
+fviz_eig(resultat_famd,
+         addlabels = TRUE,
+         ylim = c(0, 50))
+```
+
+### Interprétation
+
+Le scree plot confirme la décroissance progressive des valeurs propres après Dim1. 
+
+Contrairement à un coude net, la courbe descend doucement, indiquant qu'aucune dimension ne capture à elle seule l'essentiel de l'information. Cela reflète la nature complexe des données mixtes où l'information est répartie sur plusieurs dimensions.
+
+## Graphique des variables
+
+```{r}
+fviz_famd_var(resultat_famd,
+              repel = TRUE)
+```
+
+### Interprétation
+
+Age, MonthlyIncome et YearsAtCompany contribuent fortement à Dim1, confirmant leur rôle dans la caractérisation du profil socio-économique des employés.
+
+Les variables qualitatives BusinessTravel et Attrition contribuent davantage à Dim2, suggérant que cette dimension capte principalement le risque de départ et la mobilité professionnelle.
+
+Gender présente une faible contribution aux deux dimensions, ce qui est cohérent avec l'absence de relation significative entre le genre et l'attrition montrée précédemment.
+
+## Graphique des individus
+
+```{r}
+fviz_famd_ind(resultat_famd,
+              habillage = "Attrition",
+              addEllipses = TRUE,
+              repel = TRUE)
+```
+
+### Interprétation
+
+Les deux dimensions expliquent 34.4% de la variance totale, ce qui est modéré mais attendu pour des données mixtes.
+
+Les employés ayant quitté l'entreprise (Yes) tendent à se concentrer dans la partie supérieure du graphique, correspondant aux profils plus jeunes avec des revenus faibles et des déplacements fréquents. Les employés restés (No) dominent la partie inférieure, correspondant aux profils plus seniors et mieux rémunérés.
+
+Cependant, le chevauchement important entre les deux ellipses indique que la séparation n'est pas nette, suggérant qu'aucune combinaison simple de variables ne distingue parfaitement les deux groupes.
+
+## Conclusion
+
+La FAMD a permis d’étudier simultanément les variables quantitatives et qualitatives du dataset HR Analytics.
+
+Les résultats montrent que certaines caractéristiques comme le revenu, l’ancienneté, le département et les déplacements professionnels sont liées à l’attrition des employés.
+
+Cette analyse permet ainsi de mieux comprendre les profils des employés susceptibles de quitter l’entreprise.
+
+---
+
+# Conclusion générale
+
+Cette étude statistique réalisée sur le dataset HR Analytics Employee Attrition & Performance a permis d'identifier les principaux facteurs associés au départ des employés.
+
+L'analyse univariée a révélé un taux d'attrition global de 16.1% et mis en évidence des caractéristiques générales de la population : des employés majoritairement masculins (60%), âgés en moyenne de 37 ans, avec des revenus concentrés dans les tranches basses et moyennes.
+
+L'analyse bivariée quantitative a confirmé des corrélations positives significatives entre l'âge, l'expérience, l'ancienneté et le revenu mensuel, la corrélation la plus forte étant observée entre TotalWorkingYears et MonthlyIncome (r = 0.77).
+
+L'analyse bivariée qualitative a mis en évidence les facteurs discriminants les plus importants : les déplacements professionnels fréquents sont associés à un taux d'attrition de 24.9%, contre 8% pour les employés sans déplacement. Le département Sales présente le taux d'attrition le plus élevé (20.6%), et certains postes comme Sales Representative (39.8%) sont particulièrement exposés au risque de départ.
+
+L'analyse mixte a confirmé que les employés quittant l'entreprise sont en moyenne 4 ans plus jeunes que ceux qui restent (33 ans contre 37 ans), une différence hautement significative (p < 0.001).
+
+Enfin, les méthodes multivariées ACP et FAMD ont permis de synthétiser ces résultats et de visualiser les profils à risque : les employés jeunes, avec un faible revenu, peu d'ancienneté et des déplacements fréquents constituent le profil type le plus exposé à l'attrition.
+
+Ces résultats peuvent aider l'entreprise à mieux cibler ses politiques de rétention, notamment en direction des jeunes employés, des postes de Sales Representative et des employés soumis à des déplacements professionnels fréquents.
